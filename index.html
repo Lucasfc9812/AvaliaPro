@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AvaliaLocal – Programa de Feedback Local</title>
+  <meta name="description"
+    content="Avalie estabelecimentos locais e participe do programa de feedback da sua cidade. Ganhe recompensas por cada avaliação realizada." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ===================== CSS RESET & VARIABLES ===================== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --green: #16a34a;
+      --green-dark: #166534;
+      --green-light: #22c55e;
+      --green-pale: #dcfce7;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, .10), 0 1px 2px rgba(0, 0, 0, .06);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, .12), 0 2px 6px rgba(0, 0, 0, .08);
+      --shadow-lg: 0 10px 40px rgba(0, 0, 0, .15), 0 4px 12px rgba(0, 0, 0, .10);
+      --shadow-green: 0 4px 20px rgba(22, 163, 74, .35);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-xl: 24px;
+      --font: 'Inter', sans-serif;
+      --transition: cubic-bezier(.4, 0, .2, 1);
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--gray-100);
+      color: var(--gray-900);
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ===================== PHONE SHELL ===================== */
+    #app {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: var(--white);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+    }
+
+    @media (min-width: 480px) {
+      #app {
+        min-height: 820px;
+        max-height: 900px;
+        border-radius: 36px;
+        overflow: hidden;
+      }
+
+      body {
+        background: linear-gradient(135deg, #e2ffe8 0%, #c8f7d6 50%, #a8efbf 100%);
+      }
+    }
+
+    /* ===================== SCREENS ===================== */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(100%);
+      transition: opacity .35s var(--transition), transform .35s var(--transition);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(0);
+    }
+
+    .screen.exit-left {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* ===================== SCREEN: HOME ===================== */
+    #screen-home {
+      background: linear-gradient(165deg, #166534 0%, #16a34a 45%, #22c55e 100%);
+      align-items: center;
+      justify-content: space-between;
+      padding: 60px 28px 48px;
+      text-align: center;
+    }
+
+    .home-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .home-logo-icon {
+      width: 72px;
+      height: 72px;
+      background: rgba(255, 255, 255, .18);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      backdrop-filter: blur(8px);
+      border: 1.5px solid rgba(255, 255, 255, .3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+    }
+
+    .home-logo-name {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+    }
+
+    .home-logo-name span {
+      color: #bbf7d0;
+    }
+
+    .home-hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .home-tagline {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+      max-width: 300px;
+    }
+
+    .home-sub {
+      font-size: 14px;
+      color: rgba(255, 255, 255, .8);
+      max-width: 260px;
+      line-height: 1.6;
+    }
+
+    .home-counter {
+      background: rgba(255, 255, 255, .15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, .25);
+      border-radius: var(--radius);
+      padding: 14px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .home-counter-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .home-counter-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, .75);
+    }
+
+    .home-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ===================== BUTTONS ===================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 24px;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .2s var(--transition);
+      position: relative;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, .15);
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .btn:active::after {
+      opacity: 1;
+    }
+
+    .btn:active {
+      transform: scale(.97);
+    }
+
+    .btn-white {
+      background: #fff;
+      color: var(--green-dark);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .12);
+    }
+
+    .btn-white:hover {
+      background: #f0fdf4;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
+    }
+
+    .btn-outline-white {
+      background: rgba(255, 255, 255, .12);
+      border: 1.5px solid rgba(255, 255, 255, .45);
+      color: #fff;
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-outline-white:hover {
+      background: rgba(255, 255, 255, .2);
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+      color: #fff;
+      box-shadow: var(--shadow-green);
+    }
+
+    .btn-green:hover {
+      box-shadow: 0 6px 28px rgba(22, 163, 74, .5);
+      transform: translateY(-1px);
+    }
+
+    .btn-green-outline {
+      background: transparent;
+      border: 2px solid var(--green);
+      color: var(--green);
+    }
+
+    .btn-green-outline:hover {
+      background: var(--green-pale);
+    }
+
+    .btn-gray {
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: 1.5px solid var(--gray-200);
+    }
+
+    .btn-gray:hover {
+      background: var(--gray-200);
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* ===================== SCREEN: LOGIN ===================== */
+    #screen-login {
+      background: var(--gray-50);
+      padding: 0;
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, #166534 0%, #16a34a 100%);
+      padding: 60px 28px 44px;
+      text-align: center;
+      border-radius: 0 0 36px 36px;
+    }
+
+    .login-header-icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(255, 255, 255, .2);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 16px;
+      border: 1.5px solid rgba(255, 255, 255, .3);
+    }
+
+    .login-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .login-header p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, .75);
+    }
+
+    .login-form-wrap {
+      padding: 30px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .form-input {
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--gray-200);
+      font-family: var(--font);
+      font-size: 15px;
+      color: var(--gray-900);
+      background: #fff;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      -webkit-appearance: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, .12);
+    }
+
+    .form-input::placeholder {
+      color: var(--gray-400);
+    }
+
+    .login-hint {
+      text-align: center;
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-top: 4px;
+    }
+
+    /* ===================== SCREEN: DASHBOARD ===================== */
+    #screen-dashboard {
+      background: var(--gray-50);
+    }
+
+    .dash-header {
+      background: linear-gradient(135deg, #166534, #16a34a);
+      padding: 52px 24px 32px;
+      border-radius: 0 0 32px 32px;
+      position: relative;
+    }
+
+    .dash-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .dash-greeting {
+      font-size: 13px;
+      color: rgba(255, 255, 255, .75);
+      margin-bottom: 2px;
+    }
+
+    .dash-username {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .dash-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: 2px solid rgba(255, 255, 255, .4);
+    }
+
+    .dash-balance-card {
+      background: rgba(255, 255, 255, .15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, .25);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dash-balance-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, .7);
+      margin-bottom: 4px;
+    }
+
+    .dash-balance-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -1px;
+    }
+
+    .dash-balance-icon {
+      font-size: 36px;
+    }
+
+    .dash-body {
+      padding: 20px 18px 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid var(--gray-100);
+    }
+
+    .stat-card-icon {
+      font-size: 22px;
+    }
+
+    .stat-card-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .stat-card-label {
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .progress-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-100);
+    }
+
+    .progress-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .progress-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .progress-card-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .progress-bar-bg {
+      height: 10px;
+      background: var(--gray-100);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green-dark), var(--green-light));
+      border-radius: 99px;
+      transition: width .5s var(--transition);
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .progress-dot {
+      width: 32px;
+      height: 8px;
+      border-radius: 99px;
+      background: var(--gray-200);
+      transition: background .3s;
+    }
+
+    .progress-dot.done {
+      background: var(--green);
+    }
+
+    .online-badge {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-100);
+    }
+
+    .online-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green-light);
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, .5);
+      }
+
+      50% {
+        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+      }
+    }
+
+    .online-text {
+      font-size: 13px;
+      color: var(--gray-700);
+    }
+
+    .online-num {
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    /* ===================== SCREEN: AVALIAÇÃO ===================== */
+    #screen-rate {
+      background: var(--gray-50);
+      overflow: hidden;
+    }
+
+    .rate-header {
+      background: #fff;
+      border-bottom: 1px solid var(--gray-100);
+      padding: 52px 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
+    }
+
+    .rate-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .rate-back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--gray-100);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: background .2s;
+    }
+
+    .rate-back-btn:hover {
+      background: var(--gray-200);
+    }
+
+    .rate-header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .rate-header-sub {
+      font-size: 11px;
+      color: var(--gray-500);
+      margin-top: 1px;
+    }
+
+    .rate-header-progress {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .rate-header-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .rate-header-bar {
+      width: 60px;
+      height: 5px;
+      background: var(--gray-200);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .rate-header-bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 99px;
+      transition: width .4s;
+    }
+
+    .card-arena {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 20px 8px;
+      position: relative;
+      overflow: hidden;
+      min-height: 380px;
+    }
+
+    .est-card {
+      width: 100%;
+      max-width: 360px;
+      background: #fff;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      transition: transform .4s var(--transition), opacity .4s var(--transition);
+      will-change: transform;
+      position: relative;
+    }
+
+    .est-card.swipe-left {
+      transform: translateX(-110%) rotate(-12deg) !important;
+      opacity: 0;
+    }
+
+    .est-card.swipe-right {
+      transform: translateX(110%) rotate(12deg) !important;
+      opacity: 0;
+    }
+
+    .est-card-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .est-card-img-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, .35) 0%, transparent 60%);
+    }
+
+    .est-card-map-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, .9);
+      backdrop-filter: blur(6px);
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green-dark);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background .2s;
+    }
+
+    .est-card-map-btn:hover {
+      background: #fff;
+    }
+
+    .est-card-body {
+      padding: 16px 18px 18px;
+    }
+
+    .est-card-category {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 4px;
+    }
+
+    .est-card-name {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .est-card-city {
+      font-size: 13px;
+      color: var(--gray-500);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .star-row {
+      display: flex;
+      gap: 6px;
+      margin: 14px 0 0;
+      justify-content: center;
+    }
+
+    .star-btn {
+      font-size: 28px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: transform .15s var(--transition), filter .15s;
+      filter: grayscale(1) opacity(.4);
+      padding: 2px;
+    }
+
+    .star-btn.active,
+    .star-btn:hover {
+      filter: none;
+      transform: scale(1.2);
+    }
+
+    .rate-actions {
+      padding: 10px 20px 20px;
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    /* ===================== REWARD TOAST ===================== */
+    .reward-toast {
+      position: absolute;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120%);
+      background: linear-gradient(135deg, #166534, #16a34a);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 99px;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: var(--shadow-green);
+      pointer-events: none;
+      z-index: 1000;
+      transition: transform .4s var(--transition), opacity .4s;
+      white-space: nowrap;
+    }
+
+    .reward-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ===================== NOTIFICATION TOAST ===================== */
+    .notif-container {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      width: calc(100% - 32px);
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .notif-toast {
+      background: rgba(22, 101, 52, .95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, .15);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: transform .4s var(--transition), opacity .4s;
+      box-shadow: var(--shadow-md);
+    }
+
+    .notif-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .notif-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ===================== SCREEN: COMPLETION ===================== */
+    #screen-done {
+      background: #fff;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px 40px;
+      text-align: center;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Confetti canvas */
+    #confetti-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Central card */
+    .done-card {
+      position: relative;
+      z-index: 1;
+      background: #fff;
+      border-radius: var(--radius-xl);
+      box-shadow: 0 8px 40px rgba(22, 163, 74, .18), 0 2px 12px rgba(0, 0, 0, .08);
+      border: 1.5px solid #dcfce7;
+      padding: 36px 28px 32px;
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      animation: cardEntrance .55s cubic-bezier(.22, 1, .36, 1) both;
+    }
+
+    @keyframes cardEntrance {
+      from {
+        opacity: 0;
+        transform: translateY(40px) scale(.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Success icon ring */
+    .done-icon-ring {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+      border: 3px solid #16a34a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 44px;
+      animation: popIn .5s .15s cubic-bezier(.34, 1.56, .64, 1) both;
+      box-shadow: 0 0 0 8px rgba(22, 163, 74, .12);
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(.5);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .done-title {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--gray-900);
+      letter-spacing: -.5px;
+      margin: 0;
+    }
+
+    .done-sub {
+      font-size: 15px;
+      color: var(--gray-500);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* Divider */
+    .done-divider {
+      width: 100%;
+      height: 1px;
+      background: var(--gray-100);
+      margin: 2px 0;
+    }
+
+    /* WA message */
+    .done-wa-msg {
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--green-dark);
+      line-height: 1.55;
+      width: 100%;
+      text-align: center;
+    }
+
+    .done-balance-box {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border: 1.5px solid #bbf7d0;
+      border-radius: var(--radius-sm);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 12px;
+    }
+
+    .done-balance-label {
+      font-size: 12px;
+      color: var(--green-dark);
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .done-balance-value {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--green-dark);
+      letter-spacing: -1px;
+    }
+
+    /* ===================== LOADING OVERLAY ===================== */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, .9);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      gap: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+    }
+
+    .loading-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--green);
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-500);
+    }
+
+    /* ===================== UTILS ===================== */
+    .flex-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .text-green {
+      color: var(--green);
+    }
+
+    .fw-700 {
+      font-weight: 700;
+    }
+
+    .mt-8 {
+      margin-top: 8px;
+    }
+
+    /* vibrate animation on buttons */
+    @keyframes vibrate {
+
+      0%,
+      100% {
+        transform: translateX(0) scale(.97);
+      }
+
+      20% {
+        transform: translateX(-3px) scale(.97);
+      }
+
+      40% {
+        transform: translateX(3px) scale(.97);
+      }
+
+      60% {
+        transform: translateX(-3px) scale(.97);
+      }
+
+      80% {
+        transform: translateX(3px) scale(.97);
+      }
+    }
+
+    .vibrate {
+      animation: vibrate .35s ease;
+    }
+
+    /* shimmer loading effect */
+    @keyframes shimmer {
+      from {
+        background-position: -100% 0;
+      }
+
+      to {
+        background-position: 200% 0;
+      }
+    }
+
+    /* ===================== WHATSAPP BUTTON ===================== */
+    .btn-whatsapp {
+      background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, .4);
+      font-size: 15px;
+    }
+
+    .btn-whatsapp:hover {
+      box-shadow: 0 6px 28px rgba(37, 211, 102, .55);
+      transform: translateY(-1px);
+    }
+
+    /* ===================== SWIPE HINT LABELS ===================== */
+    .swipe-hint-left,
+    .swipe-hint-right {
+      position: absolute;
+      top: 18px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s;
+      z-index: 10;
+      border: 2px solid;
+    }
+
+    .swipe-hint-left {
+      left: 14px;
+      color: #ef4444;
+      border-color: #ef4444;
+      background: rgba(254, 242, 242, .9);
+      transform: rotate(-12deg);
+    }
+
+    .swipe-hint-right {
+      right: 14px;
+      color: #16a34a;
+      border-color: #16a34a;
+      background: rgba(240, 253, 244, .9);
+      transform: rotate(12deg);
+    }
+
+    /* ===================== STAR LABEL ===================== */
+    .star-label {
+      text-align: center;
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-top: 6px;
+      height: 16px;
+      transition: opacity .2s;
+    }
+
+    /* ===================== PROGRESS PILLS ===================== */
+    .rate-pills {
+      display: flex;
+      gap: 5px;
+      padding: 0 20px 12px;
+      flex-shrink: 0;
+    }
+
+    .rate-pill {
+      flex: 1;
+      height: 5px;
+      border-radius: 99px;
+      background: var(--gray-200);
+      transition: background .35s;
+    }
+
+    .rate-pill.done {
+      background: var(--green);
+    }
+
+    .rate-pill.current {
+      background: var(--green-light);
+    }
+
+    /* ===================== DONE SCREEN ACTIONS ===================== */
+    .done-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 0;
+    }
+
+    /* WhatsApp button override */
+    .btn-whatsapp-done {
+      background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(22, 163, 74, .4);
+      font-size: 16px;
+      font-weight: 700;
+      padding: 16px 24px;
+      letter-spacing: .2px;
+    }
+
+    .btn-whatsapp-done:hover {
+      box-shadow: 0 6px 28px rgba(22, 163, 74, .55);
+      transform: translateY(-2px);
+    }
+
+    .btn-whatsapp-done:active {
+      transform: scale(.97);
+    }
+
+    .btn-secondary-done {
+      background: #f3f4f6;
+      color: var(--gray-500);
+      border: 1.5px solid var(--gray-200);
+      font-size: 14px;
+      padding: 13px 24px;
+    }
+
+    .btn-secondary-done:hover {
+      background: var(--gray-200);
+    }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 379px) {
+      .home-tagline {
+        font-size: 19px;
+      }
+
+      .done-balance-value {
+        font-size: 34px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 1: HOME                                               -->
+    <!-- ============================================================ -->
+    <section id="screen-home" class="screen active">
+      <div class="home-logo">
+        <div class="home-logo-icon">🏪</div>
+        <div class="home-logo-name">Avalia<span>Local</span></div>
+      </div>
+
+      <div class="home-hero">
+        <div class="home-tagline">Avalie estabelecimentos e participe do programa de feedback local</div>
+        <div class="home-sub">Sua opinião vale muito. Ajude sua cidade a crescer e ganhe recompensas por isso.</div>
+        <div class="home-counter">
+          <div class="home-counter-num" id="home-counter-num">12.287</div>
+          <div class="home-counter-label">avaliações realizadas hoje</div>
+        </div>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn btn-white btn-full" onclick="navigateTo('screen-login')">✨ Entrar na plataforma</button>
+        <button class="btn btn-outline-white btn-full" onclick="navigateTo('screen-login')">🚀 Começar agora</button>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 2: LOGIN                                              -->
+    <!-- ============================================================ -->
+    <section id="screen-login" class="screen">
+      <div class="login-header">
+        <div class="login-header-icon">🔐</div>
+        <h2>Acesse sua conta</h2>
+        <p>Entre para começar a avaliar e ganhar</p>
+      </div>
+
+      <div class="login-form-wrap">
+        <div class="form-group">
+          <label class="form-label" for="inp-user">Usuário</label>
+          <input id="inp-user" class="form-input" type="text" placeholder="Digite seu usuário" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inp-pass">Senha</label>
+          <input id="inp-pass" class="form-input" type="password" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-green btn-full mt-8" id="login-btn" onclick="doLogin()">Entrar →</button>
+        <div class="login-hint">Qualquer usuário e senha funcionam 😊</div>
+        <button class="btn btn-gray btn-full" onclick="navigateTo('screen-home')" style="margin-top:4px;">←
+          Voltar</button>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 3: DASHBOARD                                          -->
+    <!-- ============================================================ -->
+    <section id="screen-dashboard" class="screen">
+      <div class="dash-header">
+        <div class="dash-header-top">
+          <div>
+            <div class="dash-greeting">Olá, bem-vindo de volta 👋</div>
+            <div class="dash-username" id="dash-username">Avaliador</div>
+          </div>
+          <div class="dash-avatar">😊</div>
+        </div>
+        <div class="dash-balance-card">
+          <div>
+            <div class="dash-balance-label">Saldo estimado</div>
+            <div class="dash-balance-value" id="dash-balance">R$0,00</div>
+          </div>
+          <div class="dash-balance-icon">💰</div>
+        </div>
+      </div>
+
+      <div class="dash-body">
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-card-icon">⭐</div>
+            <div class="stat-card-value" id="dash-count">0</div>
+            <div class="stat-card-label">de 7 avaliações</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">🏆</div>
+            <div class="stat-card-value" id="dash-rank">Iniciante</div>
+            <div class="stat-card-label">Seu nível</div>
+          </div>
+        </div>
+
+        <!-- Progress card -->
+        <div class="progress-card">
+          <div class="progress-card-header">
+            <span class="progress-card-title">Progresso de hoje</span>
+            <span class="progress-card-count" id="dash-prog-count">0 / 7</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="dash-prog-bar" style="width:0%"></div>
+          </div>
+          <div class="progress-dots" id="dash-dots"></div>
+        </div>
+
+        <!-- Online badge -->
+        <div class="online-badge">
+          <div class="online-dot"></div>
+          <div class="online-text">Usuários avaliando agora: <span class="online-num" id="dash-online">83</span></div>
+        </div>
+
+        <!-- CTA -->
+        <button class="btn btn-green btn-full" id="btn-start-rate" onclick="startRating()"
+          style="padding:18px; font-size:16px;">
+          ⭐ Começar a Avaliar
+        </button>
+
+        <!-- Reset Button -->
+        <button class="btn btn-gray btn-full" onclick="resetSession()" style="margin-top:4px;">
+          🔄 Reiniciar sessão
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 4: AVALIAÇÃO ESTILO TINDER                            -->
+    <!-- ============================================================ -->
+    <section id="screen-rate" class="screen">
+      <!-- Header -->
+      <div class="rate-header">
+        <div class="rate-header-left">
+          <button class="rate-back-btn" onclick="navigateTo('screen-dashboard')">←</button>
+          <div>
+            <div class="rate-header-title">Avaliação</div>
+            <div class="rate-header-sub">Deslize ou avalie</div>
+          </div>
+        </div>
+        <div class="rate-header-progress">
+          <div class="rate-header-count" id="rate-count">0 / 7</div>
+          <div class="rate-header-bar">
+            <div class="rate-header-bar-fill" id="rate-bar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress pills -->
+      <div class="rate-pills" id="rate-pills"></div>
+
+      <!-- Card arena -->
+      <div class="card-arena" id="card-arena">
+        <div class="est-card" id="est-card">
+          <!-- Swipe hint labels -->
+          <div class="swipe-hint-left" id="hint-left">PULAR</div>
+          <div class="swipe-hint-right" id="hint-right">AVALIAR ✓</div>
+          <div class="est-card-img" id="card-img">
+            <span id="card-emoji">🏪</span>
+            <div class="est-card-img-overlay"></div>
+            <button class="est-card-map-btn" id="card-map-btn" onclick="openMap()">📍 Google Maps</button>
+          </div>
+          <div class="est-card-body">
+            <div class="est-card-category" id="card-cat">Restaurante</div>
+            <div class="est-card-name" id="card-name">—</div>
+            <div class="est-card-city" id="card-city">📍 —</div>
+            <!-- Stars -->
+            <div class="star-row" id="star-row"></div>
+            <div class="star-label" id="star-label">Toque em uma estrela para avaliar</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="rate-actions">
+        <button class="btn btn-gray" style="flex:1" onclick="skipCard()">⏭ Pular</button>
+        <button class="btn btn-green" style="flex:2" id="btn-rate" onclick="submitRating()">Avaliar ✓</button>
+      </div>
+
+      <!-- Reward toast -->
+      <div class="reward-toast" id="reward-toast">+R$0,00 adicionados ao saldo 🎉</div>
+
+      <!-- Notification container -->
+      <div class="notif-container" id="notif-container"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 5: FINALIZAÇÃO                                        -->
+    <!-- ============================================================ -->
+    <section id="screen-done" class="screen">
+      <!-- Confetti canvas -->
+      <canvas id="confetti-canvas"></canvas>
+
+      <!-- Central success card -->
+      <div class="done-card" id="done-card">
+        <!-- Success icon -->
+        <div class="done-icon-ring">🎉</div>
+
+        <!-- Titles -->
+        <div>
+          <div class="done-title">Parabéns! 🎉</div>
+        </div>
+
+        <div class="done-sub">Você concluiu todas as avaliações disponíveis nesta sessão.</div>
+
+        <!-- Balance box -->
+        <div class="done-balance-box">
+          <div class="done-balance-label">💰 Saldo acumulado estimado</div>
+          <div class="done-balance-value" id="done-balance">R$0,00</div>
+        </div>
+
+        <div class="done-divider"></div>
+
+        <!-- WhatsApp message -->
+        <div class="done-wa-msg">
+          Para solicitar o saque entre em contato pelo whatsapp no botão abaixo.
+        </div>
+
+        <!-- Buttons -->
+        <div class="done-actions">
+          <a href="https://wa.me/5524992525672?text=gostaria%20de%20solicitar%20o%20saque%2C%20meu%20codigo%20da%20conta%20%C3%A9%20612495387"
+            target="_blank" class="btn btn-whatsapp-done btn-full" id="btn-wa-done">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32" fill="#fff"
+              style="flex-shrink:0">
+              <path
+                d="M16 0C7.164 0 0 7.163 0 16c0 2.825.737 5.478 2.027 7.79L.028 32l8.428-2.21A15.938 15.938 0 0 0 16 32c8.837 0 16-7.163 16-16S24.837 0 16 0zm0 29.333a13.27 13.27 0 0 1-6.77-1.847l-.486-.29-5.003 1.312 1.335-4.872-.317-.502A13.267 13.267 0 0 1 2.667 16C2.667 8.64 8.64 2.667 16 2.667S29.333 8.64 29.333 16 23.36 29.333 16 29.333zm7.27-9.87c-.398-.2-2.355-1.163-2.72-1.296-.366-.133-.633-.2-.9.2-.266.4-1.032 1.296-1.264 1.563-.233.266-.466.3-.865.1-.4-.2-1.686-.622-3.213-1.982-1.187-1.06-1.988-2.37-2.22-2.77-.234-.4-.025-.617.175-.816.18-.18.4-.466.6-.7.2-.233.266-.4.4-.666.133-.267.066-.5-.034-.7-.1-.2-.9-2.17-1.233-2.97-.325-.78-.655-.674-.9-.686l-.766-.013c-.267 0-.7.1-1.066.5s-1.4 1.366-1.4 3.33 1.433 3.863 1.633 4.13c.2.266 2.82 4.3 6.833 6.03.955.413 1.7.66 2.28.845.958.305 1.83.262 2.52.159.768-.115 2.354-.963 2.686-1.893.333-.93.333-1.727.233-1.893-.1-.167-.366-.267-.766-.467z" />
+            </svg>
+            CONTINUAR NO WHATSAPP
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading overlay (global) -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Carregando…</div>
+    </div>
+
+  </div>
+
+  <script>
+    /* =====================================================================
+       DATA
+    ===================================================================== */
+    const ESTABLISHMENTS = [
+      { name: "Restaurante Bella Itália", category: "Restaurante", city: "São Paulo, SP", emoji: "🍝", color: "#fde68a" },
+      { name: "Café Central", category: "Cafeteria", city: "Rio de Janeiro, RJ", emoji: "☕", color: "#ddd6fe" },
+      { name: "Padaria Pão Quente", category: "Padaria", city: "Belo Horizonte, MG", emoji: "🥐", color: "#fed7aa" },
+      { name: "Sushi House", category: "Japonês", city: "Curitiba, PR", emoji: "🍣", color: "#fce7f3" },
+      { name: "Burger Prime", category: "Hamburgeria", city: "Porto Alegre, RS", emoji: "🍔", color: "#fef3c7" },
+      { name: "Pizzaria Napoli", category: "Pizzaria", city: "Campinas, SP", emoji: "🍕", color: "#ffe4e6" },
+      { name: "Hotel Plaza", category: "Hotelaria", city: "Florianópolis, SC", emoji: "🏨", color: "#dbeafe" },
+      { name: "Academia Fitness Pro", category: "Academia", city: "Fortaleza, CE", emoji: "💪", color: "#d1fae5" },
+      { name: "Supermercado Família", category: "Supermercado", city: "Salvador, BA", emoji: "🛒", color: "#ecfdf5" },
+      { name: "Farmácia Saúde+", category: "Farmácia", city: "Recife, PE", emoji: "💊", color: "#f0fdf4" },
+      { name: "Barbearia Style", category: "Barbearia", city: "Brasília, DF", emoji: "✂️", color: "#e0f2fe" },
+      { name: "Salão Beleza Total", category: "Beleza", city: "Manaus, AM", emoji: "💅", color: "#fdf2f8" },
+      { name: "Auto Center Veloz", category: "Automotivo", city: "Goiânia, GO", emoji: "🚗", color: "#f1f5f9" },
+      { name: "Pet Shop Amigão", category: "Pet Shop", city: "Maceió, AL", emoji: "🐾", color: "#f0fdf4" },
+      { name: "Livraria Saber", category: "Livraria", city: "João Pessoa, PB", emoji: "📚", color: "#fffbeb" },
+      { name: "Escola de Idiomas Global", category: "Educação", city: "Natal, RN", emoji: "🌍", color: "#eff6ff" },
+      { name: "Clínica Bem-Estar", category: "Saúde", city: "Teresina, PI", emoji: "🏥", color: "#f0fdf4" },
+      { name: "Açaí na Tigela", category: "Lanchonete", city: "Belém, PA", emoji: "🍇", color: "#ede9fe" },
+      { name: "Sorveteria Gelato", category: "Sorveteria", city: "Vitória, ES", emoji: "🍦", color: "#fce7f3" },
+      { name: "Loja de Roupas Chic", category: "Moda", city: "São Luís, MA", emoji: "👗", color: "#fdf4ff" },
+      { name: "Óptica Visão Clara", category: "Óptica", city: "Campo Grande, MS", emoji: "👓", color: "#f0f9ff" },
+      { name: "Restaurante Churrasco do Sul", category: "Churrascaria", city: "Cuiabá, MT", emoji: "🥩", color: "#fff7ed" },
+      { name: "Bar e Petiscaria Cantinho", category: "Bar", city: "Aracaju, SE", emoji: "🍺", color: "#fef9c3" },
+      { name: "Loja de Eletrônicos TechBR", category: "Eletrônicos", city: "Macapá, AP", emoji: "📱", color: "#eff6ff" },
+      { name: "Doceria Doce Pecado", category: "Doceria", city: "Porto Velho, RO", emoji: "🍰", color: "#fdf2f8" },
+      { name: "Distribuidora de Bebidas Líder", category: "Bebidas", city: "Rio Branco, AC", emoji: "🥤", color: "#ecfdf5" },
+      { name: "Consultório Dr. Sorriso", category: "Odontologia", city: "Palmas, TO", emoji: "🦷", color: "#f0fdf4" },
+      { name: "Padaria & Confeitaria Doce Lar", category: "Padaria", city: "Boa Vista, RR", emoji: "🎂", color: "#fff7ed" },
+      { name: "Restaurante Sabor Oriental", category: "Asiático", city: "Londrina, PR", emoji: "🥢", color: "#fdf4ff" },
+      { name: "Café Gourmet Expresso", category: "Cafeteria", city: "Ribeirão Preto, SP", emoji: "☕", color: "#fffbeb" },
+    ];
+
+    /* =====================================================================
+       STATE
+    ===================================================================== */
+    let state = {
+      username: '',
+      balance: 0,
+      reviewsDone: 0,
+      maxReviews: 7,
+      currentEstIndex: 0,
+      selectedStar: 0,
+      shuffled: [],
+    };
+
+    /* =====================================================================
+       LOCALSTORAGE PERSISTENCE
+    ===================================================================== */
+    const LS_KEY = 'avalialocal_v1';
+
+    function saveUserData() {
+      const data = {
+        username: state.username,
+        balance: state.balance,
+        reviewsDone: state.reviewsDone,
+        currentEstIndex: state.currentEstIndex,
+        shuffled: state.shuffled,
+        loggedIn: !!state.username,
+        currentScreen: currentScreen,
+      };
+      try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch (e) { }
+    }
+
+    function loadUserData() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    function restoreSession() {
+      const data = loadUserData();
+      if (!data || !data.loggedIn) return; // nothing saved → stay on home
+
+      // Restore state
+      state.username = data.username || 'Avaliador';
+      state.balance = data.balance || 0;
+      state.reviewsDone = data.reviewsDone || 0;
+      state.currentEstIndex = data.currentEstIndex || state.reviewsDone;
+      state.shuffled = (data.shuffled && data.shuffled.length) ? data.shuffled : shuffle(ESTABLISHMENTS);
+
+      // Restore UI elements
+      document.getElementById('dash-username').textContent = state.username;
+      updateDashboard();
+      startOnlineCounter();
+
+      const target = data.currentScreen || 'screen-dashboard';
+
+      if (target === 'screen-rate' && state.reviewsDone < state.maxReviews) {
+        // Jump straight to rating screen, card in correct position
+        updateRatingCard();
+        updateRatingHeader();
+        updateRatePills();
+        jumpToScreen('screen-rate');
+        startNotifLoop();
+      } else if (target === 'screen-done' || state.reviewsDone >= state.maxReviews) {
+        document.getElementById('done-balance').textContent = formatBRL(state.balance);
+        jumpToScreen('screen-done');
+        setTimeout(() => { if (window.launchConfetti) launchConfetti(); }, 300);
+      } else {
+        jumpToScreen('screen-dashboard');
+      }
+    }
+
+    // Instant screen switch (no animation) used only on initial restore
+    function jumpToScreen(id) {
+      const home = document.getElementById(currentScreen);
+      home.classList.remove('active', 'exit-left');
+      const next = document.getElementById(id);
+      next.style.transition = 'none';
+      next.classList.add('active');
+      currentScreen = id;
+      setTimeout(() => { next.style.transition = ''; }, 50);
+    }
+
+    /* =====================================================================
+       HELPERS
+    ===================================================================== */
+    function formatBRL(val) {
+      return 'R$' + val.toFixed(2).replace('.', ',');
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function randInt(min, max) {
+      return Math.floor(rand(min, max + 1));
+    }
+
+    /* =====================================================================
+       NAVIGATION
+    ===================================================================== */
+    let currentScreen = 'screen-home';
+
+    function navigateTo(id) {
+      const prev = document.getElementById(currentScreen);
+      const next = document.getElementById(id);
+
+      prev.classList.add('exit-left');
+      setTimeout(() => {
+        prev.classList.remove('active', 'exit-left');
+      }, 350);
+
+      // small delay to let old screen animate out
+      setTimeout(() => {
+        next.classList.add('active');
+        currentScreen = id;
+        saveUserData(); // persist current screen
+      }, 80);
+    }
+
+    function showLoading(ms = 600) {
+      const ov = document.getElementById('loading-overlay');
+      ov.classList.add('show');
+      return new Promise(r => setTimeout(() => {
+        ov.classList.remove('show');
+        r();
+      }, ms));
+    }
+
+    /* =====================================================================
+       HOME COUNTER
+    ===================================================================== */
+    (function initHomeCounter() {
+      let count = 12000 + randInt(100, 500);
+      const el = document.getElementById('home-counter-num');
+      function update() {
+        count += randInt(1, 5);
+        el.textContent = count.toLocaleString('pt-BR');
+        setTimeout(update, randInt(1800, 4500));
+      }
+      update();
+    })();
+
+    /* =====================================================================
+       ONLINE COUNTER
+    ===================================================================== */
+    let onlineTimer;
+    function startOnlineCounter() {
+      clearInterval(onlineTimer);
+      const el = document.getElementById('dash-online');
+      let val = randInt(60, 120);
+      function update() {
+        val += randInt(-6, 8);
+        val = Math.max(40, Math.min(200, val));
+        el.textContent = val;
+        el.animate([{ transform: 'scale(1.25)', color: '#16a34a' }, { transform: 'scale(1)' }], { duration: 400 });
+      }
+      onlineTimer = setInterval(update, randInt(2500, 5000));
+      el.textContent = val;
+    }
+
+    /* =====================================================================
+       LOGIN
+    ===================================================================== */
+    function doLogin() {
+      const user = document.getElementById('inp-user').value.trim() || 'Avaliador';
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.textContent = 'Entrando…';
+
+      showLoading(800).then(() => {
+        state.username = user.charAt(0).toUpperCase() + user.slice(1);
+        document.getElementById('dash-username').textContent = state.username;
+        updateDashboard();
+        startOnlineCounter();
+        navigateTo('screen-dashboard');
+        btn.disabled = false;
+        btn.textContent = 'Entrar →';
+        saveUserData(); // persist login
+      });
+    }
+
+    /* =====================================================================
+       DASHBOARD
+    ===================================================================== */
+    function updateDashboard() {
+      const done = state.reviewsDone;
+      const max = state.maxReviews;
+      document.getElementById('dash-balance').textContent = formatBRL(state.balance);
+      document.getElementById('dash-count').textContent = done;
+      document.getElementById('dash-prog-count').textContent = `${done} / ${max}`;
+      document.getElementById('dash-prog-bar').style.width = `${(done / max) * 100}%`;
+
+      // Dots
+      const dotsWrap = document.getElementById('dash-dots');
+      dotsWrap.innerHTML = '';
+      for (let i = 0; i < max; i++) {
+        const d = document.createElement('div');
+        d.className = 'progress-dot' + (i < done ? ' done' : '');
+        dotsWrap.appendChild(d);
+      }
+
+      // Rank
+      const rankEl = document.getElementById('dash-rank');
+      if (done === 0) rankEl.textContent = 'Iniciante';
+      else if (done < 3) rankEl.textContent = 'Bronze 🥉';
+      else if (done < 5) rankEl.textContent = 'Prata 🥈';
+      else rankEl.textContent = 'Ouro 🥇';
+
+      // CTA
+      const cta = document.getElementById('btn-start-rate');
+      if (done >= max) {
+        cta.textContent = '✅ Avaliações concluídas';
+        cta.disabled = true;
+        cta.classList.remove('btn-green');
+        cta.classList.add('btn-gray');
+      } else {
+        cta.textContent = '⭐ Começar a Avaliar';
+        cta.disabled = false;
+        cta.classList.add('btn-green');
+        cta.classList.remove('btn-gray');
+      }
+    }
+
+    /* =====================================================================
+       RATING SCREEN
+    ===================================================================== */
+    const NOTIF_NAMES = ['Ana', 'Pedro', 'Lucas', 'Maria', 'João', 'Carla', 'Rafael', 'Paula', 'Diego', 'Letícia', 'Felipe', 'Camila'];
+    const NOTIF_ITEMS = ['um restaurante', 'uma padaria', 'um café', 'uma pizzaria', 'um supermercado', 'uma farmácia', 'um pet shop', 'uma livraria'];
+
+    let notifTimer;
+    let pendingSwipe = false;
+
+    function startRating() {
+      if (state.reviewsDone >= state.maxReviews) return;
+      // Reuse saved shuffle so cards stay consistent after refresh
+      if (!state.shuffled || state.shuffled.length === 0) {
+        state.shuffled = shuffle(ESTABLISHMENTS);
+      }
+      state.currentEstIndex = state.reviewsDone;
+      updateRatingCard();
+      updateRatingHeader();
+      updateRatePills();
+      navigateTo('screen-rate');
+      startNotifLoop();
+    }
+
+    function updateRatingHeader() {
+      const done = state.reviewsDone;
+      const max = state.maxReviews;
+      document.getElementById('rate-count').textContent = `${done} / ${max}`;
+      document.getElementById('rate-bar').style.width = `${(done / max) * 100}%`;
+    }
+
+    function updateRatingCard() {
+      const idx = state.currentEstIndex % state.shuffled.length;
+      const est = state.shuffled[idx];
+
+      document.getElementById('card-emoji').textContent = est.emoji;
+      document.getElementById('card-img').style.background = `linear-gradient(135deg, ${est.color}, #f0fdf4)`;
+      document.getElementById('card-cat').textContent = est.category;
+      document.getElementById('card-name').textContent = est.name;
+      document.getElementById('card-city').textContent = '📍 ' + est.city;
+
+      // Reset stars
+      state.selectedStar = 0;
+      renderStars(0);
+
+      // Reset card transform
+      const card = document.getElementById('est-card');
+      card.style.transition = 'none';
+      card.style.transform = 'translateX(0) rotate(0deg)';
+      card.style.opacity = '1';
+      card.classList.remove('swipe-left', 'swipe-right');
+      void card.offsetWidth;
+      card.style.transition = '';
+    }
+
+    const STAR_LABELS = ['', 'Ruim', 'Regular', 'Bom', 'Muito bom', 'Excelente! ⭐'];
+
+    function renderStars(selected) {
+      const row = document.getElementById('star-row');
+      row.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'star-btn' + (i <= selected ? ' active' : '');
+        btn.textContent = '⭐';
+        btn.setAttribute('aria-label', `${i} estrela${i > 1 ? 's' : ''}`);
+        btn.addEventListener('click', () => selectStar(i));
+        row.appendChild(btn);
+      }
+      const lbl = document.getElementById('star-label');
+      if (lbl) lbl.textContent = selected > 0 ? STAR_LABELS[selected] : 'Toque em uma estrela para avaliar';
+    }
+
+    function selectStar(n) {
+      state.selectedStar = n;
+      renderStars(n);
+      const btn = document.getElementById('btn-rate');
+      btn.classList.add('vibrate');
+      setTimeout(() => btn.classList.remove('vibrate'), 400);
+    }
+
+    function updateRatePills() {
+      const wrap = document.getElementById('rate-pills');
+      if (!wrap) return;
+      wrap.innerHTML = '';
+      for (let i = 0; i < state.maxReviews; i++) {
+        const p = document.createElement('div');
+        if (i < state.reviewsDone) p.className = 'rate-pill done';
+        else if (i === state.reviewsDone) p.className = 'rate-pill current';
+        else p.className = 'rate-pill';
+        wrap.appendChild(p);
+      }
+    }
+
+    function submitRating() {
+      if (state.selectedStar === 0) {
+        // prompt user to pick a star
+        const row = document.getElementById('star-row');
+        row.style.animation = 'none';
+        row.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 300 });
+        return;
+      }
+      if (pendingSwipe) return;
+      doRating();
+    }
+
+    function skipCard() {
+      if (pendingSwipe) return;
+      // skip without reward
+      animateCardOut('right');
+      setTimeout(() => {
+        state.currentEstIndex++;
+        updateRatingCard();
+        pendingSwipe = false;
+        saveUserData(); // keep card index
+      }, 450);
+    }
+
+    function doRating() {
+      pendingSwipe = true;
+
+      // Reward
+      const reward = parseFloat(rand(10, 20).toFixed(2));
+      state.balance += reward;
+      state.reviewsDone++;
+      state.currentEstIndex++;
+
+      // Show reward toast
+      const toast = document.getElementById('reward-toast');
+      toast.textContent = `+${formatBRL(reward)} adicionados ao saldo 🎉`;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2600);
+
+      // Animate card out to left
+      animateCardOut('left');
+
+      setTimeout(() => {
+        updateRatingHeader();
+        updateDashboard();
+        updateRatePills();
+        saveUserData(); // persist score after each rating
+
+        if (state.reviewsDone >= state.maxReviews) {
+          // done!
+          clearInterval(notifTimer);
+          document.getElementById('done-balance').textContent = formatBRL(state.balance);
+          const doneCount = document.getElementById('done-count');
+          if (doneCount) doneCount.textContent = state.reviewsDone;
+          navigateTo('screen-done');
+          setTimeout(() => { if (window.launchConfetti) launchConfetti(); }, 200);
+        } else {
+          updateRatingCard();
+        }
+        pendingSwipe = false;
+      }, 450);
+    }
+
+    function animateCardOut(dir) {
+      const card = document.getElementById('est-card');
+      card.classList.add(dir === 'left' ? 'swipe-left' : 'swipe-right');
+    }
+
+    function openMap() {
+      const idx = state.currentEstIndex % state.shuffled.length;
+      const est = state.shuffled[idx];
+      window.open(`https://www.google.com/maps/search/${encodeURIComponent(est.name + ' ' + est.city)}`, '_blank');
+    }
+
+    /* =====================================================================
+       SWIPE WITH TOUCH/MOUSE
+    ===================================================================== */
+    (function initSwipe() {
+      let startX = 0, startY = 0, dragging = false;
+      const card = document.getElementById('est-card');
+
+      const hintLeft = document.getElementById('hint-left');
+      const hintRight = document.getElementById('hint-right');
+
+      function onStart(e) {
+        if (pendingSwipe) return;
+        const src = e.touches ? e.touches[0] : e;
+        startX = src.clientX;
+        startY = src.clientY;
+        dragging = true;
+        card.style.transition = 'none';
+      }
+      function onMove(e) {
+        if (!dragging) return;
+        const src = e.touches ? e.touches[0] : e;
+        const dx = src.clientX - startX;
+        const dy = src.clientY - startY;
+        if (Math.abs(dy) > Math.abs(dx) && Math.abs(dx) < 10) return;
+        e.preventDefault();
+        const rot = dx * 0.05;
+        card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+        const opacity = 1 - Math.min(1, Math.abs(dx) / 220);
+        card.style.opacity = opacity;
+        // Show swipe hint labels
+        const ratio = Math.min(1, Math.abs(dx) / 80);
+        if (hintLeft && hintRight) {
+          hintLeft.style.opacity = dx < 0 ? ratio : 0;
+          hintRight.style.opacity = dx > 0 ? ratio : 0;
+        }
+      }
+      function onEnd(e) {
+        if (!dragging) return;
+        dragging = false;
+        card.style.transition = '';
+        if (hintLeft) hintLeft.style.opacity = 0;
+        if (hintRight) hintRight.style.opacity = 0;
+        const src = e.changedTouches ? e.changedTouches[0] : e;
+        const dx = src.clientX - startX;
+        if (dx < -80) {
+          if (state.selectedStar > 0) doRating();
+          else resetCardPos();
+        } else if (dx > 80) {
+          skipCard();
+        } else {
+          resetCardPos();
+        }
+      }
+      function resetCardPos() {
+        card.style.transform = 'translateX(0) rotate(0deg)';
+        card.style.opacity = '1';
+        if (hintLeft) hintLeft.style.opacity = 0;
+        if (hintRight) hintRight.style.opacity = 0;
+      }
+
+      card.addEventListener('touchstart', onStart, { passive: true });
+      card.addEventListener('touchmove', onMove, { passive: false });
+      card.addEventListener('touchend', onEnd);
+      card.addEventListener('mousedown', onStart);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onEnd);
+    })();
+
+    /* =====================================================================
+       NOTIFICATIONS
+    ===================================================================== */
+    function showNotif(text) {
+      const container = document.getElementById('notif-container');
+      const el = document.createElement('div');
+      el.className = 'notif-toast';
+      el.innerHTML = `<span class="notif-icon">🔔</span><span>${text}</span>`;
+      container.appendChild(el);
+      setTimeout(() => el.classList.add('show'), 10);
+      setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 400);
+      }, 3500);
+    }
+
+    function startNotifLoop() {
+      clearInterval(notifTimer);
+      const fire = () => {
+        const name = NOTIF_NAMES[randInt(0, NOTIF_NAMES.length - 1)];
+        const item = NOTIF_ITEMS[randInt(0, NOTIF_ITEMS.length - 1)];
+        showNotif(`${name} acabou de avaliar ${item}`);
+      };
+      fire();
+      notifTimer = setInterval(fire, randInt(5000, 10000));
+    }
+
+    /* =====================================================================
+       CONFETTI ANIMATION
+    ===================================================================== */
+    (function initConfetti() {
+      const COLORS = ['#16a34a', '#22c55e', '#86efac', '#fbbf24', '#fff', '#bbf7d0', '#4ade80', '#facc15'];
+      let particles = [];
+      let raf = null;
+      let canvas, ctx;
+
+      function resize() {
+        if (!canvas) return;
+        const parent = canvas.parentElement;
+        canvas.width = parent ? parent.offsetWidth : window.innerWidth;
+        canvas.height = parent ? parent.offsetHeight : window.innerHeight;
+      }
+
+      function createParticle(w, h) {
+        return {
+          x: Math.random() * w,
+          y: -10 - Math.random() * 40,
+          r: 4 + Math.random() * 6,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          vx: (Math.random() - 0.5) * 2.2,
+          vy: 2 + Math.random() * 3,
+          rot: Math.random() * Math.PI * 2,
+          vr: (Math.random() - 0.5) * 0.18,
+          shape: Math.random() > 0.5 ? 'rect' : 'circle',
+          w: 6 + Math.random() * 8,
+          h: 4 + Math.random() * 5,
+          alpha: 1,
+        };
+      }
+
+      function launchBurst(w, h) {
+        for (let i = 0; i < 90; i++) {
+          particles.push(createParticle(w, h));
+        }
+      }
+
+      function loop() {
+        if (!canvas || !ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const h = canvas.height;
+        const w = canvas.width;
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.05; // gravity
+          p.rot += p.vr;
+          // fade out near bottom
+          if (p.y > h * 0.75) p.alpha -= 0.025;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.alpha);
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          if (p.shape === 'circle') {
+            ctx.beginPath();
+            ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          }
+          ctx.restore();
+        });
+        // remove dead particles
+        particles = particles.filter(p => p.alpha > 0 && p.y < h + 20);
+        // keep dripping for 3s
+        if (particles.length < 60 && Date.now() - launchTime < 3000) {
+          for (let i = 0; i < 4; i++) particles.push(createParticle(w, h));
+        }
+        if (particles.length > 0) {
+          raf = requestAnimationFrame(loop);
+        } else {
+          raf = null;
+        }
+      }
+
+      let launchTime = 0;
+
+      window.launchConfetti = function () {
+        canvas = document.getElementById('confetti-canvas');
+        if (!canvas) return;
+        ctx = canvas.getContext('2d');
+        resize();
+        particles = [];
+        launchTime = Date.now();
+        launchBurst(canvas.width, canvas.height);
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(loop);
+
+        // Re-trigger card entrance animation
+        const card = document.getElementById('done-card');
+        if (card) {
+          card.style.animation = 'none';
+          void card.offsetWidth;
+          card.style.animation = '';
+        }
+      };
+    })();
+
+    /* =====================================================================
+       RESET SESSION
+    ===================================================================== */
+    function resetSession() {
+      state.balance = 0;
+      state.reviewsDone = 0;
+      state.currentEstIndex = 0;
+      state.selectedStar = 0;
+      state.username = '';
+      clearInterval(notifTimer);
+      clearInterval(onlineTimer);
+
+      const inpUser = document.getElementById('inp-user');
+      const inpPass = document.getElementById('inp-pass');
+      if (inpUser) inpUser.value = '';
+      if (inpPass) inpPass.value = '';
+
+      try { localStorage.removeItem(LS_KEY); } catch (e) { }
+
+      updateDashboard();
+      jumpToScreen('screen-home');
+    }
+
+    /* =====================================================================
+       KEYBOARD SUPPORT
+    ===================================================================== */
+    const inpPass = document.getElementById('inp-pass');
+    if (inpPass) {
+      inpPass.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doLogin();
+      });
+    }
+    const inpUser = document.getElementById('inp-user');
+    if (inpUser) {
+      inpUser.addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('inp-pass').focus();
+      });
+    }
+
+    /* =====================================================================
+       INIT
+    ===================================================================== */
+    restoreSession();
+  </script>
+</body>
+
+</html>
